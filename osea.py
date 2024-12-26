@@ -26,9 +26,9 @@ def parse_args():
     parser.add_argument('--output_folder', required=True, help='Path to the output folder for annotated images')
     parser.add_argument('--location', required=False, help='Geographical coordinates (latitude,longitude) for species filtering')
     parser.add_argument('--classification_model', required=False, help='Name of classification model, must match the model name in Pytorch identically')
-    parser.add_argument('--model_path', required=False, help='Path to the model .pth file')
+    parser.add_argument('--model_path', required=True, help='Path to the model .pth file')
     parser.add_argument('--label_path', required=False, help='Path to the label file')
-    parser.add_argument('--class_number', type=int, required=False, help='Class number to identify species')
+    parser.add_argument('--class_number', type=int, default=11000, required=False, help='Class number to identify species')
     parser.add_argument('--detection_model', required=False, help='Name of detection model, must match the model name in Pytorch identically')
     parser.add_argument('--detection_model_path', required=False, help='Path to the model .pth file')
     parser.add_argument('--detection_class_number', type=int, required=False, help='Class number to identify species')
@@ -82,6 +82,9 @@ def preprocess_image(image_path):
 
 
 def detect_objects(detection_model, image_tensor, detection_target):
+    if not detection_target:
+        detection_target = 16
+
     with torch.no_grad():
         predictions = detection_model(image_tensor)
     keep = [i for i, label in enumerate(predictions[0]['labels']) if label == detection_target]
@@ -91,6 +94,8 @@ def detect_objects(detection_model, image_tensor, detection_target):
 
 
 def read_label_list(file_path):
+    if not file_path:
+        file_path = './labels.txt'
     with open(file_path, 'r', encoding='utf-8') as file:
         lines = file.readlines()
         return [line.strip() for line in lines]
@@ -143,7 +148,7 @@ def softmax(tuples):
     return updated_tuples
 
 
-def get_filtered_predictions(predictions: list[float], species_list: list[float]) -> list[tuple[int, float]]:
+def get_filtered_predictions(predictions: list[float], species_list: list[int]) -> list[tuple[int, float]]:
     original = {index: value for index, value in enumerate(predictions)}
 
     if species_list:

@@ -5,3 +5,4 @@
 *.onnx
 /test_images
 /test_outs
+/__pycache__
