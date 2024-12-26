@@ -1,0 +1,7 @@
+.idea/*
+*.db
+*.pt
+*.pth
+*.onnx
+/test_images
+/test_outs
